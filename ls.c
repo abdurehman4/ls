@@ -1,8 +1,7 @@
-#include <stdio.h>
-#include <dirent.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
+#include <stdio.h>    // For printing text
+#include <dirent.h>   // For getting list of members of a directory
+#include <string.h>   // For using functions like strcmp
+#include <sys/stat.h> // For differentiating between directories and files
 
 int get_no_of_files(DIR ** directory,struct dirent ** dir_entry){
   int count = 0;
@@ -10,17 +9,6 @@ int get_no_of_files(DIR ** directory,struct dirent ** dir_entry){
   while ((*dir_entry = readdir(*directory)) != NULL)
     ++count;
   return count-2; // Excluding "." and ".."
-}
-
-int isDirectory(char * path)
-{
-  struct stat statbuf;
-  if (stat(path, &statbuf) != 0) { //The stat() function obtains information about the named file and writes it to the area pointed to by the buf argument. 
-        // (Failure Case) Path does not exist or an error occurred
-        puts("Error while accessing the file/directory.");
-        return 1;
-    }
-  return S_ISDIR(statbuf.st_mode);
 }
 
 
@@ -40,16 +28,37 @@ void get_files_list(DIR ** directory, struct dirent ** dir_entry, char * files[]
   }}
 }
 
+int get_no_of_hidden_files(int no_of_files,char *files[]){
 
-void get_hidden_files(int no_of_files,char * files[])
-{
   int num_of_hidden_files = 0;
+
   for (int i=0; i<no_of_files; i++){
     if (files[i][0] == '.'){
       num_of_hidden_files++;
     }
   }
-  printf("No of hidden files is : %d", num_of_hidden_files);
+  return num_of_hidden_files; 
+}
+
+char * get_hidden_files(int no_of_files, char * files[], char * hidden_files[])
+{
+  int j=0;
+  for (int i=0; i<no_of_files; i++){
+    if (files[i][0] == '.'){
+      hidden_files[j++] = files[i];
+    }
+  }
+}
+
+int isDirectory(char * path)
+{
+  struct stat statbuf;
+  if (stat(path, &statbuf) != 0) { //The stat() function obtains information about the named file and writes it to the area pointed to by the buf argument. 
+        // (Failure Case) Path does not exist or an error occurred
+        puts("Error while accessing the file/directory.");
+        return 1;
+    }
+  return S_ISDIR(statbuf.st_mode);
 }
 
 int main(int argc,char* argv[])
@@ -69,17 +78,16 @@ int main(int argc,char* argv[])
   char * names[count];
   get_files_list(&directory, &dir_entry, names);
   
+  int num_of_hidden_files = get_no_of_hidden_files(count,names);
 
-  get_hidden_files(count,names);
-  /*
-  for (int i=0; i<count; i++)
-  {
-    printf("%-10s",names[i]);
-  }
- */
-
+  char * hidden_files[num_of_hidden_files];
+  get_hidden_files(count, names, hidden_files);
   
-  // filter_hidden_files(names);
+  for (int i=0; i<num_of_hidden_files; i++)
+  {
+    printf("%-10s", hidden_files[i]);
+  }
+  
   puts("");
 
   //Closing the opened directory
