@@ -1,3 +1,4 @@
 .hidden
 .second_hidden
 ls
+.gitignore
